@@ -1,0 +1,21 @@
+executeAction(): Moved to action as it executes a subsequent function based upon the kind of action it is.
+
+getCurrentImage(): Moved to action as the method is predominantly used to retrieve the image of an active entity while creating the Processing view.
+
+viewportToWorld(): As it leverages the active viewport to get a position.
+
+shiftView(): Moved to worldview as it is responsible for directly switching the active view of the rendered Frame.
+
+transformNotFull(): Moved to entity as certain entities transfer between 2 states -> Full & Not full.
+
+moveToFairy(): Moved to entity as certain entities are transferred to the fairy entity kind.
+
+nextImage(): Moved to entity as it responsible to render the next image to complete animation sequences.
+
+parseTree(): Left in functions as it’s used to create a Tree entity. Keeping it in Static helps in creating the object.
+
+createDudeNotFull(): Left in functions as it’s used to create a Dude not Full entity. Keeping it in Static helps in creating the object.
+
+loadImages(): Left in functions as it’s used to load the images to create character objects and loading images to render animations.
+
+
