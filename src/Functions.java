@@ -50,7 +50,6 @@ public final class Functions {
     public static final int DUDE_COL = 2;
     public static final int DUDE_ROW = 3;
     public static final int DUDE_LIMIT = 4;
-    public static final int DUDE_COUNT = 0;
     public static final int DUDE_ACTION_PERIOD = 5;
     public static final int DUDE_ANIMATION_PERIOD = 6;
 
@@ -85,7 +84,6 @@ public final class Functions {
     public static final int TREE_ACTION_MIN = 1000;
     public static final int TREE_HEALTH_MAX = 3;
     public static final int TREE_HEALTH_MIN = 1;
-    private static final int FAIRY_IMAGE_INDEX = 0;            //MADE THIS
 
     public static int getNumFromRange(int max, int min) {
         Random rand = new Random();
@@ -112,7 +110,6 @@ public final class Functions {
         return properties.length == Functions.BGND_NUM_PROPERTIES;
     }
 
-
     private static boolean parseSapling(
             String[] properties, WorldModel world, ImageStore imageStore) {
         if (properties.length == Functions.SAPLING_NUM_PROPERTIES) {
@@ -120,7 +117,8 @@ public final class Functions {
                     Integer.parseInt(properties[Functions.SAPLING_ROW]));
             String id = properties[Functions.SAPLING_ID];
             int health = Integer.parseInt(properties[Functions.SAPLING_HEALTH]);
-            Entity entity = Functions.createSapling(id, pt, imageStore.getDefaultImages());    //check if right
+            Entity entity = new Entity(EntityKind.SAPLING, id, pt, Functions.getImageList(imageStore, Functions.SAPLING_KEY), 0, 0,
+                    Functions.SAPLING_ACTION_ANIMATION_PERIOD, Functions.SAPLING_ACTION_ANIMATION_PERIOD, health, Functions.SAPLING_HEALTH_LIMIT);
             world.tryAddEntity(entity);
         }
 
@@ -133,11 +131,11 @@ public final class Functions {
             Point pt = new Point(Integer.parseInt(properties[Functions.DUDE_COL]),
                     Integer.parseInt(properties[Functions.DUDE_ROW]));
             Entity entity = Functions.createDudeNotFull(properties[Functions.DUDE_ID],
-                    pt, Functions.getImageList(imageStore, Functions.DUDE_KEY),
-                    Integer.parseInt(properties[Functions.DUDE_LIMIT]),
-                    Integer.parseInt(properties[Functions.DUDE_COUNT]),
+                    pt,
                     Integer.parseInt(properties[Functions.DUDE_ACTION_PERIOD]),
-                    Integer.parseInt(properties[Functions.DUDE_ANIMATION_PERIOD]));
+                    Integer.parseInt(properties[Functions.DUDE_ANIMATION_PERIOD]),
+                    Integer.parseInt(properties[Functions.DUDE_LIMIT]),
+                    Functions.getImageList(imageStore, Functions.DUDE_KEY));
             world.tryAddEntity(entity);
         }
 
@@ -149,20 +147,13 @@ public final class Functions {
         if (properties.length == Functions.FAIRY_NUM_PROPERTIES) {
             Point pt = new Point(Integer.parseInt(properties[Functions.FAIRY_COL]),
                     Integer.parseInt(properties[Functions.FAIRY_ROW]));
-            Entity entity = Functions.createFairy(properties[Functions.FAIRY_ID], pt,
-                    Functions.getImageList(imageStore, Functions.FAIRY_KEY),
-                    Integer.parseInt(properties[Functions.FAIRY_IMAGE_INDEX]),
+            Entity entity = Functions.createFairy(properties[Functions.FAIRY_ID],
+                    pt,
                     Integer.parseInt(properties[Functions.FAIRY_ACTION_PERIOD]),
-                    Integer.parseInt(properties[Functions.FAIRY_ANIMATION_PERIOD]));
+                    Integer.parseInt(properties[Functions.FAIRY_ANIMATION_PERIOD]),
+                    Functions.getImageList(imageStore, Functions.FAIRY_KEY));
             world.tryAddEntity(entity);
         }
-
-       // String id,
-        //            Point position,
-        //            List<PImage> images,
-        //            int imageIndex,
-        //            int actionPeriod,
-        //            int animationPeriod)
 
         return properties.length == Functions.FAIRY_NUM_PROPERTIES;
     }
@@ -215,7 +206,7 @@ public final class Functions {
 
     public static List<PImage> getImageList(ImageStore imageStore, String key) {
         return imageStore.getImages().getOrDefault(key, imageStore.getDefaultImages());
-    }
+    }      // when moved to imagestore, gave 12 related problems
 
     private static void processImageLine(
             Map<String, List<PImage>> images, String line, PApplet screen) {
@@ -238,12 +229,14 @@ public final class Functions {
     }
 
     public static void loadImages(
-            Scanner in, ImageStore imageStore, PApplet screen) {
+            Scanner in, ImageStore imageStore, PApplet screen)
+    {
         int lineNumber = 0;
         while (in.hasNextLine()) {
             try {
                 processImageLine(imageStore.getImages(), in.nextLine(), screen);
-            } catch (NumberFormatException e) {
+            }
+            catch (NumberFormatException e) {
                 System.out.println(
                         String.format("Image format error on line %d",
                                 lineNumber));
@@ -306,7 +299,6 @@ public final class Functions {
         while (in.hasNextLine()) {
             try {
                 if (!Functions.processLine(worldModel, in.nextLine(), imageStore)) {
-
                     System.err.println(String.format("invalid entry on line %d",
                             lineNumber));
                 }
@@ -323,7 +315,7 @@ public final class Functions {
     }
 
     private static boolean processLine(WorldModel worldModel,
-                                       String line, ImageStore imageStore) {
+                                      String line, ImageStore imageStore) {
         String[] properties = line.split("\\s");
         if (properties.length > 0) {
             switch (properties[Functions.PROPERTY_KEY]) {
@@ -365,14 +357,17 @@ public final class Functions {
 
 
     private static Entity createHouse(
-            String id, Point position, List<PImage> images) {
-        return new House(id, position, images, 0);
+            String id, Point position, List<PImage> images)
+    {
+        return new Entity(EntityKind.HOUSE, id, position, images, 0, 0, 0,
+                          0, 0, 0);
     }
 
     private static Entity createObstacle(
-            String id, Point position, int animationPeriod, List<PImage> images) {
-        return new Obstacle(id, position, images,
-                animationPeriod, 0, 0);
+            String id, Point position, int animationPeriod, List<PImage> images)
+    {
+        return new Entity(EntityKind.OBSTACLE, id, position, images, 0, 0, 0,
+                          animationPeriod, 0, 0);
     }
 
     public static Entity createTree(
@@ -381,63 +376,64 @@ public final class Functions {
             int actionPeriod,
             int animationPeriod,
             int health,
-            List<PImage> images) {
-        return new Tree(id, position, images, 0, 0, 0,
+            List<PImage> images)
+    {
+        return new Entity(EntityKind.TREE, id, position, images, 0, 0,
                 actionPeriod, animationPeriod, health, 0);
     }
 
     public static Entity createStump(
             String id,
             Point position,
-            List<PImage> images) {
-        return new Stump(id, position, images, 0);
+            List<PImage> images)
+    {
+        return new Entity(EntityKind.STUMP, id, position, images, 0, 0,
+                0, 0, 0, 0);
     }
 
     // health starts at 0 and builds up until ready to convert to Tree
     public static Entity createSapling(
             String id,
             Point position,
-            List<PImage> images) {
-       return new Sapling(id, position, images, 0, 0,0,
-                Functions.SAPLING_ACTION_ANIMATION_PERIOD, Functions.SAPLING_ACTION_ANIMATION_PERIOD,0, Functions.SAPLING_HEALTH_LIMIT);
-
+            List<PImage> images)
+    {
+        return new Entity(EntityKind.SAPLING, id, position, images, 0, 0,
+                SAPLING_ACTION_ANIMATION_PERIOD, SAPLING_ACTION_ANIMATION_PERIOD, 0, SAPLING_HEALTH_LIMIT);
     }
-
 
     private static Entity createFairy(
             String id,
             Point position,
-            List<PImage> images,
-            int imageIndex,
             int actionPeriod,
-            int animationPeriod)
+            int animationPeriod,
+            List<PImage> images)
     {
-        return new Fairy(id, position, images, 0, 0,
-                 0);
+        return new Entity(EntityKind.FAIRY, id, position, images, 0, 0,
+                actionPeriod, animationPeriod, 0, 0);
     }
 
     // need resource count, though it always starts at 0
     public static Entity createDudeNotFull(
             String id,
             Point position,
-            List<PImage> images,
-            int resourceLimit,
-            int resourceCount,
             int actionPeriod,
-            int animationPeriod)
+            int animationPeriod,
+            int resourceLimit,
+            List<PImage> images)
     {
-        return new DudeNotFull(id, position, images, resourceLimit, resourceCount,
-                actionPeriod, animationPeriod);
+        return new Entity(EntityKind.DUDE_NOT_FULL, id, position, images, resourceLimit, 0,
+                actionPeriod, animationPeriod, 0, 0);
     }
 
     // don't technically need resource count ... full
     public static Entity createDudeFull(
             String id,
             Point position,
-            List<PImage> images,
-            int resourceLimit,
             int actionPeriod,
-            int animationPeriod) {
-        return new DudeFull(id, position, images, 0,0, 0, 0);
+            int animationPeriod,
+            int resourceLimit,
+            List<PImage> images) {
+        return new Entity(EntityKind.DUDE_FULL, id, position, images, resourceLimit, 0,
+                actionPeriod, animationPeriod, 0, 0);
     }
 }
